@@ -43,19 +43,13 @@ function filterParam(data) {
   }
   const proto = (data || {}).constructor.name;
   // avoid passing React Native parameters
-  if (!data || (proto !== 'Object')) {
+  if (!data || proto !== 'Object') {
     return {};
   }
   return data;
 }
 
-const reservedKeys = [
-  'create',
-  'callback',
-  'iterate',
-  'current',
-  ...Object.keys(ActionMap),
-];
+const reservedKeys = ['create', 'callback', 'iterate', 'current', ...Object.keys(ActionMap)];
 
 function getInheritProps(props) {
   // eslint-disable-next-line no-unused-vars
@@ -71,6 +65,7 @@ class Actions {
     this.pop = this.pop.bind(this);
     this.refresh = this.refresh.bind(this);
     this.focus = this.focus.bind(this);
+    this.lastKey = undefined;
   }
 
   iterate(root: Scene, parentProps = {}, refsParam = {}, wrapBy) {
@@ -80,7 +75,7 @@ class Actions {
     assert(key, 'unique key should be defined ');
     assert(
       reservedKeys.indexOf(key) === -1,
-      `'${key}' is not allowed as key name. Reserved keys: [${reservedKeys.join(', ')}]`,
+      `'${key}' is not allowed as key name. Reserved keys: [${reservedKeys.join(', ')}]`
     );
     const { children, component, ...staticProps } = root.props;
     let type = root.props.type || (parentProps.tabs ? ActionConst.JUMP : ActionConst.PUSH);
@@ -91,7 +86,7 @@ class Actions {
     const componentProps = component ? { component: wrapBy(component) } : {};
     // wrap other components
     if (wrapBy) {
-      Object.keys(staticProps).forEach((prop) => {
+      Object.keys(staticProps).forEach(prop => {
         const componentClass = staticProps[prop];
         if (componentClass && componentClass.prototype && componentClass.prototype.render) {
           componentProps[prop] = wrapBy(componentClass);
@@ -114,10 +109,10 @@ class Actions {
     if (!(list instanceof Array)) {
       list = [list];
     }
-    list.forEach((item) => {
+    list.forEach(item => {
       if (item) {
         if (item instanceof Array) {
-          item.forEach((it) => {
+          item.forEach(it => {
             normalized.push(it);
           });
         } else {
@@ -127,8 +122,11 @@ class Actions {
     });
     list = normalized; // normalize the list of scenes
 
-    const condition = el => (!el.props.component && !el.props.children && !el.props.onPress &&
-    (!el.props.type || ActionMap[el.props.type] === ActionConst.REFRESH));
+    const condition = el =>
+      !el.props.component &&
+      !el.props.children &&
+      !el.props.onPress &&
+      (!el.props.type || ActionMap[el.props.type] === ActionConst.REFRESH);
     // determine sub-states
     let baseKey = root.key;
     let subStateParent = parentProps.key;
@@ -145,12 +143,14 @@ class Actions {
         const innerKey = `${res.key}_`;
         baseKey = innerKey;
         subStateParent = res.key;
-        const inner = { ...res,
+        const inner = {
+          ...res,
           name: key,
           key: innerKey,
           sceneKey: innerKey,
           type: ActionConst.PUSH,
-          parent: res.key };
+          parent: res.key,
+        };
         refs[innerKey] = inner;
         res.children = [innerKey];
         delete res.component;
@@ -159,29 +159,33 @@ class Actions {
     }
     // process substates
     for (const el of subStates) {
-      refs[el.key] = { key: el.key,
+      refs[el.key] = {
+        key: el.key,
         name: el.key,
         ...el.props,
         type: ActionConst.REFRESH,
         base: baseKey,
-        parent: subStateParent };
+        parent: subStateParent,
+      };
       if (this[el.key]) {
         console.log(`Key ${el.key} is already defined!`);
       }
-      this[el.key] =
-        (props = {}) => {
-          assert(this.callback, 'Actions.callback is not defined!');
-          this.callback({ key: el.key, type: ActionConst.REFRESH, ...filterParam(props) });
-        };
+      this[el.key] = (props = {}) => {
+        assert(this.callback, 'Actions.callback is not defined!');
+        this.callback({ key: el.key, type: ActionConst.REFRESH, ...filterParam(props) });
+      };
     }
     if (this[key]) {
       console.log(`Key ${key} is already defined!`);
     }
-    this[key] =
-      (props = {}) => {
+    this[key] = (props = {}) => {
+      if (this.lastKey !== key || type === ActionConst.REFRESH) {
         assert(this.callback, 'Actions.callback is not defined!');
+        this.lastKey = key;
         this.callback({ key, type, ...filterParam(props) });
-      };
+      } else {
+      }
+    };
     refs[res.key] = res;
 
     return res;
@@ -192,10 +196,12 @@ class Actions {
   }
 
   pop(props = {}) {
+    this.lastKey = undefined;
     return this.callback({ ...filterParam(props), type: ActionConst.BACK_ACTION });
   }
 
   jump(props = {}) {
+    this.lastKey = props.key || '';
     return this.callback({ ...filterParam(props), type: ActionConst.JUMP });
   }
 
@@ -208,10 +214,11 @@ class Actions {
   }
 
   androidBack(props = {}) {
+    this.lastKey = undefined;
     return this.callback({ ...filterParam(props), type: ActionConst.ANDROID_BACK });
   }
 
-  create(scene:Scene, wrapBy = x => x) {
+  create(scene: Scene, wrapBy = x => x) {
     assert(scene, 'root scene should be defined');
     const refs = {};
     this.iterate(scene, {}, refs, wrapBy);
