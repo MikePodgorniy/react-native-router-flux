@@ -32,14 +32,16 @@ export default class extends React.Component {
     componentDidMount() {
         Animated.timing(this.state.offset, {
             duration: 150,
-            toValue: 0
+            toValue: 0,
+            useNativeDriver: true
         }).start();
     }
 
     closeModal() {
         Animated.timing(this.state.offset, {
             duration: 150,
-            toValue: -deviceHeight
+            toValue: -deviceHeight,
+            useNativeDriver: true
         }).start(Actions.pop);
     }
 

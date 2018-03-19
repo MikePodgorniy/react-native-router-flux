@@ -6,16 +6,9 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-import React, {
-  PureComponent,
-} from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Animated,
-  View,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { Animated, View, StyleSheet, Dimensions } from 'react-native';
 import NavigationExperimental from 'react-native-experimental-navigation';
 
 import TabBar from './TabBar';
@@ -26,10 +19,7 @@ import { deepestExplicitValueForKey } from './Util';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-const {
-  AnimatedView: NavigationAnimatedView,
-  Card: NavigationCard,
-} = NavigationExperimental;
+const { AnimatedView: NavigationAnimatedView, Card: NavigationCard } = NavigationExperimental;
 
 const {
   CardStackPanResponder: NavigationCardStackPanResponder,
@@ -47,10 +37,7 @@ const styles = StyleSheet.create({
 });
 
 function fadeInScene(/* NavigationSceneRendererProps */ props) {
-  const {
-    position,
-    scene,
-  } = props;
+  const { position, scene } = props;
 
   const index = scene.index;
   const inputRange = [index - 1, index, index + 1];
@@ -70,19 +57,12 @@ function fadeInScene(/* NavigationSceneRendererProps */ props) {
 
   return {
     opacity,
-    transform: [
-      { scale },
-      { translateX },
-      { translateY },
-    ],
+    transform: [{ scale }, { translateX }, { translateY }],
   };
 }
 
 function leftToRight(/* NavigationSceneRendererProps */ props) {
-  const {
-    position,
-    scene,
-  } = props;
+  const { position, scene } = props;
 
   const index = scene.index;
   const inputRange = [index - 1, index, index + 1];
@@ -93,17 +73,12 @@ function leftToRight(/* NavigationSceneRendererProps */ props) {
   });
 
   return {
-    transform: [
-      { translateX },
-    ],
+    transform: [{ translateX }],
   };
 }
 
 function topToBottom(/* NavigationSceneRendererProps */ props) {
-  const {
-    position,
-    scene,
-  } = props;
+  const { position, scene } = props;
 
   const index = scene.index;
   const inputRange = [index - 1, index, index + 1];
@@ -114,14 +89,11 @@ function topToBottom(/* NavigationSceneRendererProps */ props) {
   });
 
   return {
-    transform: [
-      { translateY },
-    ],
+    transform: [{ translateY }],
   };
 }
 
 export default class DefaultRenderer extends PureComponent {
-
   static propTypes = {
     navigationState: PropTypes.object,
     onNavigate: PropTypes.func,
@@ -132,9 +104,9 @@ export default class DefaultRenderer extends PureComponent {
   };
 
   static getPanHandlers(direction, props) {
-    return direction === 'vertical' ?
-      NavigationCardStackPanResponder.forVertical(props) :
-      NavigationCardStackPanResponder.forHorizontal(props);
+    return direction === 'vertical'
+      ? NavigationCardStackPanResponder.forVertical(props)
+      : NavigationCardStackPanResponder.forHorizontal(props);
   }
 
   static dispatchFocusAction({ navigationState }) {
@@ -230,11 +202,7 @@ export default class DefaultRenderer extends PureComponent {
   }
 
   static renderCard(/* NavigationSceneRendererProps */ props) {
-    const { key,
-      direction,
-      animation,
-      getSceneStyle,
-    } = props.scene.navigationState;
+    const { key, direction, animation, getSceneStyle } = props.scene.navigationState;
 
     const state = props.navigationState;
     const child = state.children[state.index];
@@ -257,20 +225,20 @@ export default class DefaultRenderer extends PureComponent {
     const style = getSceneStyle ? getSceneStyle(props, computedProps) : null;
 
     // direction overrides animation if both are supplied
-    const animType = (animation && !direction) ? animation : direction;
+    const animType = animation && !direction ? animation : direction;
 
-    if (typeof (animationStyle) === 'undefined') {
+    if (typeof animationStyle === 'undefined') {
       animationStyle = DefaultRenderer.chooseInterpolator(animType, props);
     }
 
-    if (typeof (animationStyle) === 'function') {
+    if (typeof animationStyle === 'function') {
       animationStyle = animationStyle(props);
     }
 
-    if (typeof (panHandlers) === 'undefined') {
-      panHandlers = getPanHandlers ?
-        getPanHandlers(props, direction) :
-        DefaultRenderer.getPanHandlers(direction, props);
+    if (typeof panHandlers === 'undefined') {
+      panHandlers = getPanHandlers
+        ? getPanHandlers(props, direction)
+        : DefaultRenderer.getPanHandlers(direction, props);
     }
     return (
       <NavigationCard
@@ -315,9 +283,7 @@ export default class DefaultRenderer extends PureComponent {
 
     if (SceneComponent) {
       return (
-        <View
-          style={[styles.sceneStyle, navigationState.sceneStyle]}
-        >
+        <View style={[styles.sceneStyle, navigationState.sceneStyle]}>
           <SceneComponent {...this.props} {...navigationState} />
         </View>
       );
@@ -338,7 +304,11 @@ export default class DefaultRenderer extends PureComponent {
           if (duration === 0) {
             pos.setValue(navState.index);
           } else {
-            Animated.timing(pos, { toValue: navState.index, duration }).start();
+            Animated.timing(pos, {
+              toValue: navState.index,
+              duration,
+              useNativeDriver: true,
+            }).start();
           }
         };
       }
