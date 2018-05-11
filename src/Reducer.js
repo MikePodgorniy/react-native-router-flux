@@ -12,7 +12,7 @@
 import { Platform } from 'react-native';
 import isEqual from 'lodash.isequal';
 import * as ActionConst from './ActionConst';
-import { ActionMap } from './Actions';
+import Actions, { ActionMap } from './Actions';
 import { assert } from './Util';
 import { getInitialState } from './State';
 
@@ -403,6 +403,7 @@ function reducer({ initialState, scenes }) {
           assert(el, `Cannot find element for parent=${el.parent} within current state`);
         }
         action.parent = el.sceneKey;
+        Actions.lastKey = undefined;
       }
     }
 
