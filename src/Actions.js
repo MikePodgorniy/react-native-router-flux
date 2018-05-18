@@ -179,7 +179,7 @@ class Actions {
       console.log(`Key ${key} is already defined!`);
     }
     this[key] = (props = {}) => {
-      if (this.lastKey !== key || type === ActionConst.REFRESH) {
+      if (this.lastKey !== key || type === ActionConst.REFRESH || props.ignore) {
         assert(this.callback, 'Actions.callback is not defined!');
         this.lastKey = key;
         this.callback({ key, type, ...filterParam(props) });
